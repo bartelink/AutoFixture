@@ -96,6 +96,7 @@
   <ItemGroup>
     <Compile Include="AutoPropertiesTarget.cs" />
     <Compile Include="BehaviorRoot.cs" />
+    <Compile Include="FreezeOnMatchCustomization.cs" />
     <Compile Include="Kernel\IRecursionHandler.cs" />
     <Compile Include="MapCreateManyToEnumerable.cs" />
     <Compile Include="Kernel\MultipleToEnumerableRelay.cs" />
@@ -105,6 +106,7 @@
     <Compile Include="Kernel\ThrowingRecursionHandler.cs" />
     <Compile Include="Kernel\ValueTypeSpecification.cs" />
     <Compile Include="Kernel\MutableValueTypeWarningThrower.cs" />
+    <Compile Include="Matching.cs" />
     <Compile Include="NoAutoPropertiesCustomization.cs" />
     <Compile Include="Require.cs" />
     <Compile Include="RandomBooleanSequenceGenerator.cs" />
