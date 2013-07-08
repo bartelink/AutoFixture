@@ -98,6 +98,7 @@
     <Compile Include="BehaviorRoot.cs" />
     <Compile Include="FreezeOnMatchCustomization.cs" />
     <Compile Include="Kernel\IRecursionHandler.cs" />
+    <Compile Include="Kernel\PropertyNameSpecification.cs" />
     <Compile Include="MapCreateManyToEnumerable.cs" />
     <Compile Include="Kernel\MultipleToEnumerableRelay.cs" />
     <Compile Include="Kernel\NoConstructorsSpecification.cs" />
