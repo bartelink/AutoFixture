@@ -159,5 +159,45 @@ namespace Ploeh.AutoFixtureUnitTest
                 areSameSpecimen);
             // Teardown
         }
+
+        [Fact]
+        public void FreezeByMatchingPropertyNameShouldReturnSameSpecimenForPropertyOfSameType()
+        {
+            // Fixture setup
+            var frozenType = typeof(ConcreteType);
+            var propertyName = "Property";
+            var fixture = new Fixture();
+            var sut = new FreezeOnMatchCustomization(
+                frozenType,
+                propertyName,
+                Matching.PropertyName);
+            // Exercise system
+            sut.Customize(fixture);
+            // Verify outcome
+            var frozen = fixture.Create<ConcreteType>();
+            var requested = fixture.Create<PropertyHolder<ConcreteType>>().Property;
+            Assert.Same(frozen, requested);
+            // Teardown
+        }
+
+        [Fact]
+        public void FreezeByMatchingPropertyNameShouldReturnSameSpecimenForPropertyOfAssignableType()
+        {
+            // Fixture setup
+            var frozenType = typeof(ConcreteType);
+            var propertyName = "Property";
+            var fixture = new Fixture();
+            var sut = new FreezeOnMatchCustomization(
+                frozenType,
+                propertyName,
+                Matching.PropertyName);
+            // Exercise system
+            sut.Customize(fixture);
+            // Verify outcome
+            var frozen = fixture.Create<ConcreteType>();
+            var requested = fixture.Create<PropertyHolder<AbstractType>>().Property;
+            Assert.Same(frozen, requested);
+            // Teardown
+        }
     }
 }

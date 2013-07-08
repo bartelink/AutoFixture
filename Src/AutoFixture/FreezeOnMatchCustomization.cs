@@ -11,6 +11,7 @@ namespace Ploeh.AutoFixture
         private readonly string identifier;
         private readonly Matching matchBy;
         private readonly List<Type> matchingTypes;
+        private readonly List<IRequestSpecification> nameFilters;
 
         public FreezeOnMatchCustomization(
             Type targetType,
@@ -23,6 +24,7 @@ namespace Ploeh.AutoFixture
             this.identifier = identifier;
             this.matchBy = matchBy;
             this.matchingTypes = new List<Type>();
+            this.nameFilters = new List<IRequestSpecification>();
         }
 
         public Type TargetType
@@ -41,7 +43,8 @@ namespace Ploeh.AutoFixture
 
             var specimen = FreezeTargetType(fixture);
             var types = MatchSpecimenByType(specimen);
-            var builder = new CompositeSpecimenBuilder(types);
+            var names = MatchSpecimenByName(specimen);
+            var builder = new CompositeSpecimenBuilder(types.Union(names));
 
             fixture.Customizations.Insert(0, builder);
         }
@@ -58,6 +61,12 @@ namespace Ploeh.AutoFixture
             MatchByBaseType();
             MatchByImplementedInterfaces();
             return MapSpecimenToTypeFilters(specimen);
+        }
+
+        private IEnumerable<ISpecimenBuilder> MatchSpecimenByName(ISpecimenBuilder specimen)
+        {
+            MatchByPropertyName();
+            return MapSpecimenToNameFilters(specimen);
         }
 
         private void MatchByExactType()
@@ -84,12 +93,28 @@ namespace Ploeh.AutoFixture
             }
         }
 
+        private void MatchByPropertyName()
+        {
+            if (this.matchBy.HasFlag(Matching.PropertyName))
+            {
+                nameFilters.Add(new PropertyNameSpecification(this.identifier));
+            }
+        }
+
         private IEnumerable<FilteringSpecimenBuilder> MapSpecimenToTypeFilters(ISpecimenBuilder specimen)
         {
             return from type in matchingTypes
                    select SpecimenBuilderNodeFactory.CreateTypedNode(
                        type,
                        specimen);
+        }
+
+        private IEnumerable<FilteringSpecimenBuilder> MapSpecimenToNameFilters(ISpecimenBuilder specimen)
+        {
+            return from filter in nameFilters
+                   select new FilteringSpecimenBuilder(
+                       specimen,
+                       filter);
         }
     }
 }

@@ -8,5 +8,6 @@ namespace Ploeh.AutoFixture
         ExactType = 0,
         BaseType = 1,
         ImplementedInterfaces = 2,
+        PropertyName = 4
     }
 }
