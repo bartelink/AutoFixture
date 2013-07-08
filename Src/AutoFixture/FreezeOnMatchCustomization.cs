@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Ploeh.AutoFixture.Kernel;
 
 namespace Ploeh.AutoFixture
@@ -6,14 +8,21 @@ namespace Ploeh.AutoFixture
     public class FreezeOnMatchCustomization : ICustomization
     {
         private readonly Type targetType;
+        private readonly string identifier;
         private readonly Matching matchBy;
+        private readonly List<Type> matchingTypes;
 
-        public FreezeOnMatchCustomization(Type targetType, Matching matchBy = Matching.ExactType)
+        public FreezeOnMatchCustomization(
+            Type targetType,
+            string identifier = null,
+            Matching matchBy = Matching.ExactType)
         {
             Require.IsNotNull(targetType, "targetType");
 
             this.targetType = targetType;
+            this.identifier = identifier;
             this.matchBy = matchBy;
+            this.matchingTypes = new List<Type>();
         }
 
         public Type TargetType
@@ -30,13 +39,57 @@ namespace Ploeh.AutoFixture
         {
             Require.IsNotNull(fixture, "fixture");
 
-            this.MapFixedSpecimenToTargetType(fixture);
+            var specimen = FreezeTargetType(fixture);
+            var types = MatchSpecimenByType(specimen);
+            var builder = new CompositeSpecimenBuilder(types);
+
+            fixture.Customizations.Insert(0, builder);
         }
 
-        private void MapFixedSpecimenToTargetType(IFixture fixture)
+        private ISpecimenBuilder FreezeTargetType(IFixture fixture)
         {
             var specimen = fixture.Create(this.targetType);
-            fixture.Customizations.Insert(0, new FixedBuilder(specimen));
+            return new FixedBuilder(specimen);
+        }
+
+        private IEnumerable<ISpecimenBuilder> MatchSpecimenByType(ISpecimenBuilder specimen)
+        {
+            MatchByExactType();
+            MatchByBaseType();
+            MatchByImplementedInterfaces();
+            return MapSpecimenToTypeFilters(specimen);
+        }
+
+        private void MatchByExactType()
+        {
+            if (this.matchBy.HasFlag(Matching.ExactType))
+            {
+                matchingTypes.Add(this.targetType);
+            }
+        }
+
+        private void MatchByBaseType()
+        {
+            if (this.matchBy.HasFlag(Matching.BaseType))
+            {
+                matchingTypes.Add(this.targetType.BaseType ?? typeof(object));
+            }
+        }
+
+        private void MatchByImplementedInterfaces()
+        {
+            if (this.matchBy.HasFlag(Matching.ImplementedInterfaces))
+            {
+                matchingTypes.AddRange(this.targetType.GetInterfaces());
+            }
+        }
+
+        private IEnumerable<FilteringSpecimenBuilder> MapSpecimenToTypeFilters(ISpecimenBuilder specimen)
+        {
+            return from type in matchingTypes
+                   select SpecimenBuilderNodeFactory.CreateTypedNode(
+                       type,
+                       specimen);
         }
     }
 }

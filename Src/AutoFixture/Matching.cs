@@ -1,8 +1,12 @@
-﻿namespace Ploeh.AutoFixture
+﻿using System;
+
+namespace Ploeh.AutoFixture
 {
+    [Flags]
     public enum Matching
     {
         ExactType = 0,
-        BaseType = 1
+        BaseType = 1,
+        ImplementedInterfaces = 2,
     }
 }

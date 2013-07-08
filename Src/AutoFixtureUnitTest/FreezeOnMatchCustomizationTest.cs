@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.Kernel;
 using Ploeh.TestTypeFoundation;
@@ -47,12 +48,12 @@ namespace Ploeh.AutoFixtureUnitTest
         {
             // Fixture setup
             var targetType = typeof(object);
-            var matchBy = Matching.BaseType;
+            var matcher = Matching.BaseType;
             // Exercise system
-            var sut = new FreezeOnMatchCustomization(targetType, matchBy);
+            var sut = new FreezeOnMatchCustomization(targetType, matchBy: matcher);
             // Verify outcome
             Assert.Equal(targetType, sut.TargetType);
-            Assert.Equal(matchBy, sut.MatchBy);
+            Assert.Equal(matcher, sut.MatchBy);
         }
 
         [Fact]
@@ -77,52 +78,85 @@ namespace Ploeh.AutoFixtureUnitTest
         }
 
         [Theory]
-        [InlineData(typeof(object))]
-        [InlineData(typeof(string))]
-        [InlineData(typeof(int))]
-        [InlineData(typeof(bool))]
-        public void FreezeByMatchingExactTypeShouldReturnSameSpecimenForThatType(Type targetType)
+        [InlineData(typeof(object), typeof(object), true)]
+        [InlineData(typeof(string), typeof(string), true)]
+        [InlineData(typeof(int), typeof(int), true)]
+        [InlineData(typeof(object), typeof(bool), false)]
+        [InlineData(typeof(int), typeof(string), false)]
+        public void FreezeByMatchingExactTypeShouldReturnTheRightSpecimen(
+            Type frozenType,
+            Type requestedType,
+            bool areSameSpecimen)
         {
             // Fixture setup
             var fixture = new Fixture();
             var context = new SpecimenContext(fixture);
-            var sut = new FreezeOnMatchCustomization(targetType, Matching.ExactType);
+            var sut = new FreezeOnMatchCustomization(
+                frozenType,
+                matchBy: Matching.ExactType);
             // Exercise system
             sut.Customize(fixture);
             // Verify outcome
-            Assert.Equal(context.Resolve(targetType), context.Resolve(targetType));
+            var frozen = context.Resolve(frozenType);
+            var requested = context.Resolve(requestedType);
+            Assert.Equal(
+                object.ReferenceEquals(frozen, requested),
+                areSameSpecimen);
             // Teardown
         }
 
-        [Fact]
-        public void FreezeByMatchingBaseTypeShouldReturnSameSpecimenForBaseType()
+        [Theory]
+        [InlineData(typeof(ConcreteType), typeof(ConcreteType), true)]
+        [InlineData(typeof(ConcreteType), typeof(AbstractType), true)]
+        [InlineData(typeof(string), typeof(object), true)]
+        [InlineData(typeof(ConcreteType), typeof(object), false)]
+        [InlineData(typeof(int), typeof(string), false)]
+        public void FreezeByMatchingBaseTypeShouldReturnTheRightSpecimen(
+            Type frozenType,
+            Type requestedType,
+            bool areSameSpecimen)
         {
             // Fixture setup
-            var targetType = typeof(ConcreteType);
             var fixture = new Fixture();
-            var sut = new FreezeOnMatchCustomization(targetType, Matching.ExactType);
+            var context = new SpecimenContext(fixture);
+            var sut = new FreezeOnMatchCustomization(
+                frozenType,
+                matchBy: Matching.BaseType);
             // Exercise system
             sut.Customize(fixture);
             // Verify outcome
-            var baseSpecimen = fixture.Create<AbstractType>();
-            var specimen = fixture.Create<ConcreteType>();
-            Assert.Equal(baseSpecimen, specimen);
+            var frozen = context.Resolve(frozenType);
+            var requested = context.Resolve(requestedType);
+            Assert.Equal(
+                object.ReferenceEquals(frozen, requested),
+                areSameSpecimen);
             // Teardown
         }
 
-        [Fact]
-        public void FreezeByMatchingBaseTypeShouldReturnSameSpecimenForAncestorType()
+        [Theory]
+        [InlineData(typeof(ArrayList), typeof(ArrayList), true)]
+        [InlineData(typeof(ArrayList), typeof(IEnumerable), true)]
+        [InlineData(typeof(ArrayList), typeof(IList), true)]
+        [InlineData(typeof(ArrayList), typeof(ICollection), true)]
+        public void FreezeByMatchingImplementedInterfacesShouldReturnTheRightSpecimen(
+            Type frozenType,
+            Type requestedType,
+            bool areSameSpecimen)
         {
             // Fixture setup
-            var targetType = typeof(ConcreteType);
             var fixture = new Fixture();
-            var sut = new FreezeOnMatchCustomization(targetType, Matching.ExactType);
+            var context = new SpecimenContext(fixture);
+            var sut = new FreezeOnMatchCustomization(
+                frozenType,
+                matchBy: Matching.ImplementedInterfaces);
             // Exercise system
             sut.Customize(fixture);
             // Verify outcome
-            var ancestorSpecimen = fixture.Create<object>();
-            var specimen = fixture.Create<ConcreteType>();
-            Assert.Equal(ancestorSpecimen, specimen);
+            var frozen = context.Resolve(frozenType);
+            var requested = context.Resolve(requestedType);
+            Assert.Equal(
+                object.ReferenceEquals(frozen, requested),
+                areSameSpecimen);
             // Teardown
         }
     }
