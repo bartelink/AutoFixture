@@ -1,5 +1,7 @@
 ## Project Description ##
 
+[![Join the chat at https://gitter.im/bartelink/AutoFixture](https://badges.gitter.im/bartelink/AutoFixture.svg)](https://gitter.im/bartelink/AutoFixture?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Write maintainable unit tests, faster.
 
 AutoFixture makes it easier for developers to do Test-Driven Development by automating non-relevant Test Fixture Setup, allowing the Test Developer to focus on the essentials of each test case.
